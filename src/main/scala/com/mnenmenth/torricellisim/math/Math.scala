@@ -88,7 +88,7 @@ object ProjectileMotion {
     * @param g Acceleration due to gravity
     * @return Maximum height during flight
     */
-  def maxHeight(Vo: Double, θ: Double, g: Double = G): Double = ((Vo*Vo) * math.sqrt(math.sin(θ))) / (2 * g)
+  def maxHeight(Vo: Double, θ: Double, g: Double = G): Double = ((Vo*Vo) * math.pow(math.sin(θ), 2) / (2 * g)
 
   /**
     *
