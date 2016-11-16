@@ -6,10 +6,23 @@ package com.mnenmenth.torricellisim.math
   * for licensing information
   * https://github.com/Mnenmenth
   */
-object Math {
 
-
-
+/**
+  * Point
+  * @param x X Coordinate
+  * @param y Y Coordinate
+  * @param numT Implicit numeric type
+  * @tparam T Implicit numeric type
+  */
+case class Point[T](var x: T, var y: T)(implicit numT:Numeric[T]){
+  def +(p:Point[T]): Point[T] = Point(numT.plus(x, p.x), numT.plus(y, p.y))
+  def -(p:Point[T]): Point[T]= Point(numT.minus(x, p.x), numT.minus(y, p.y))
+  def *(p: Point[T]): Point[T] = Point(numT.times(x, p.x), numT.times(y, p.y))
+  def toInt: Point[Int] = Point(numT.toInt(x), numT.toInt(y))
+  def toDouble: Point[Double] = Point(numT.toDouble(x), numT.toDouble(y))
+  def toFloat: Point[Float] = Point(numT.toFloat(x), numT.toFloat(y))
+  def toLong: Point[Float] = Point(numT.toLong(x), numT.toLong(y))
+  override def toString = s"($x,$y)"
 }
 
 object TorricellisLaw {
