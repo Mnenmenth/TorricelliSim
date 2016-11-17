@@ -14,6 +14,7 @@ import scala.swing.event.{Key, KeyPressed}
 class ContentPane extends BorderPanel {
 
   val renderPane = new RenderPane
+  layout(renderPane) = BorderPanel.Position.Center
 
   listenTo(keys)
   reactions += {
