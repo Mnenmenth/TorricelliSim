@@ -1,6 +1,6 @@
 package com.mnenmenth.torricellisim.drawable
 
-import java.awt.geom.Rectangle2D
+import java.awt.geom.{Arc2D, Rectangle2D}
 import java.awt.{BasicStroke, Color, Dimension, Polygon}
 
 import com.mnenmenth.torricellisim.core.TorricelliSim
@@ -14,7 +14,9 @@ import scala.swing.Graphics2D
   * for licensing information
   * https://github.com/Mnenmenth
   */
-class Container(containerSize: Dimension) extends Drawable {
+class Container(private var _size: Dimension,
+                private var _liquidHeight: Double = 0,
+                private var _liquidVel: Double = 0) extends Drawable {
   private object WallSide extends Enumeration { val Left, Right, Bottom = Value }
   private class Wall(side: WallSide.Value) extends Line {
     import WallSide._
@@ -30,11 +32,26 @@ class Container(containerSize: Dimension) extends Drawable {
     }
   }
 
-  private class Liquid extends Drawable {
+  private class WaterStream(private var _height: Double = size.height) extends Drawable {
+    private val arc = new Arc2D.Double(Arc2D.OPEN)
+
+    def height = _height
+    def height_=(h: Double) = {
+      _height = h
+      val Vi = liquidVel
+      val time = ProjectileMotion.timeTaken(Vi, 0)
+      val hDis = ProjectileMotion.horizontalDistance(Vi, time)
+      val maxH = ProjectileMotion.maxHeight(Vi, time)
+      val impactAngle = ProjectileMotion.impactAngle(0, Vi)
+      val pos = CoordSys.c2p(Point(0, height))
+      val rect =
+    }
+  }
+
+  private class Liquid(private var _height: Double = liquidHeight) extends Drawable {
     //private val box = new Rectangle2D.Double(0, 0, 0, 0)
     private val box = new Polygon()
 
-    private var _height: Double = liquidHeight
     def height = _height
     def height_=(h: Double)={
       _height = h
@@ -48,6 +65,7 @@ class Container(containerSize: Dimension) extends Drawable {
       box.addPoint(topRight.x, topRight.y)
       box.addPoint(bottomRight.x, bottomRight.y)
     }
+    height = height
 
     override def draw(g: Graphics2D): Unit = {
       val g2 = g.create().asInstanceOf[Graphics2D]
@@ -57,7 +75,6 @@ class Container(containerSize: Dimension) extends Drawable {
     }
   }
 
-  private var _size: Dimension = containerSize
   def size: Dimension = _size
   def size_=(s: Dimension)= {
     _size = s
@@ -65,16 +82,15 @@ class Container(containerSize: Dimension) extends Drawable {
     rightWall = new Wall(WallSide.Right)
     bottomWall = new Wall(WallSide.Bottom)
   }
+  size = size
 
-  private var _liquidHeight: Double = 0
   def liquidHeight: Double = _liquidHeight
   def liquidHeight_=(h: Double)={
     _liquidHeight = h
     _liquidVel = TorricellisLaw.velocity(h)
     liquid.height = h
   }
-
-  private var _liquidVel: Double = 0
+  liquidHeight = liquidHeight
   def liquidVel: Double = _liquidVel
   def liquidVel_=(v: Double)={
     _liquidVel = v

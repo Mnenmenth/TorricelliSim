@@ -18,8 +18,7 @@ import scala.swing.{Graphics2D, Panel}
 class RenderPane extends Panel {
 
   val graph = new CoordSys(TorricelliSim.windowSize, 100, 100, 5)//1, shiftX = -9, shiftY = -9)
-  val container = new Container(new Dimension(50,50))
-  container.liquidHeight = 43
+  val container = new Container(new Dimension(50,50), _liquidHeight = 43)
 
   listenTo(mouse.moves, mouse.clicks)
   reactions += {
@@ -29,7 +28,7 @@ class RenderPane extends Panel {
     case MouseClicked(_, point, _, _, _) =>
       val p = CoordSys.p2c(Point(point.x, point.y))
       println(p.y)
-      if (p.x <= container.size.height && p.y >= 0) container.liquidHeight = p.y
+      if (p.y <= container.size.height && p.y >= 0) container.liquidHeight = p.y
   }
 
   override def paint(g: Graphics2D): Unit = {

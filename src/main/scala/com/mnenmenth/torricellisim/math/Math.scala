@@ -22,6 +22,8 @@ case class Point[T](var x: T, var y: T)(implicit numT:Numeric[T]){
   def toDouble: Point[Double] = Point(numT.toDouble(x), numT.toDouble(y))
   def toFloat: Point[Float] = Point(numT.toFloat(x), numT.toFloat(y))
   def toLong: Point[Float] = Point(numT.toLong(x), numT.toLong(y))
+  def toAwtPoint: java.awt.Point = new java.awt.Point(numT.toInt(x), numT.toInt(y))
+  def toDimension: java.awt.Dimension = new java.awt.Dimension(numT.toInt(x), numT.toInt(y))
   override def toString = s"($x,$y)"
 }
 
@@ -111,4 +113,12 @@ object ProjectileMotion {
     * @return Horizontal range
     */
   def horizontalRange(Vo: Double, θ: Double, g: Double = G): Double = ((Vo*Vo) * (2 * math.sin(θ))) / g
+
+  /**
+    *
+    * @param Vy Vertical Velocity
+    * @param Vx Horizontal Velocity
+    * @return Angle of Impact
+    */
+  def impactAngle(Vy: Double, Vx: Double) = math.atan(Vy/Vx)
 }
