@@ -16,7 +16,7 @@ import scala.swing.{Dimension, Graphics2D}
   */
 object CoordSys {
 
-  var width, height : Int = 0
+  var width, height, shiftX, shiftY : Int = 0
 
   object SingleAxis extends Enumeration {
     val X, Y = Value
@@ -54,7 +54,7 @@ object CoordSys {
       end = Point(0, height)
     }
     var hatches = List[Hatch]()
-    for (p <- 0 to (if(axis == X) width/2 else if (axis == Y) height/2 else 0) by incrementBy) {
+    for (p <- 0 to (if(axis == X) width+shiftX/2 else if (axis == Y) height+shiftY/2 else 0) by incrementBy) {
       hatches = hatches :+ new Hatch(p, axis)
       hatches = hatches :+ new Hatch(-p, axis)
     }
@@ -74,9 +74,9 @@ object CoordSys {
     */
   def c2p(coord: Double, axis: SingleAxis.Value): Int = {
     if(axis == SingleAxis.X) {
-      (((width/2)+coord)*TorricelliSim.windowSize.width/width).toInt
+      (((width/2)+shiftX+coord)*TorricelliSim.windowSize.width/width).toInt
     } else if(axis == SingleAxis.Y) {
-      (((height/2)-coord)*TorricelliSim.windowSize.height/height).toInt
+      (((height/2)+shiftY-coord)*TorricelliSim.windowSize.height/height).toInt
     } else {
       0
     }
@@ -88,8 +88,8 @@ object CoordSys {
     * @return Pixel Point
     */
   def c2p(coord: Point[Double]): Point[Int] = {
-    val x = ((width/2)+coord.x)*TorricelliSim.windowSize.width/width
-    val y = ((height/2)-coord.y)*TorricelliSim.windowSize.height/height
+    val x = ((width/2)+shiftX+coord.x)*TorricelliSim.windowSize.width/width
+    val y = ((height/2)+shiftY-coord.y)*TorricelliSim.windowSize.height/height
     Point(x.toInt, y.toInt)
   }
 
@@ -101,9 +101,9 @@ object CoordSys {
     */
   def p2c(coord: Double, axis: SingleAxis.Value): Double = {
     if(axis == SingleAxis.X) {
-      (coord/TorricelliSim.windowSize.width)*width-(width/2)
+      (coord/TorricelliSim.windowSize.width)*width-((width/2)+shiftX)
     } else if(axis == SingleAxis.Y) {
-      -1*((coord/TorricelliSim.windowSize.height)*height-(height/2))
+      -1*((coord/TorricelliSim.windowSize.height)*height-((height/2)+shiftY))
     } else {
       0.0
     }
@@ -115,8 +115,8 @@ object CoordSys {
     * @return Coordinate point
     */
   def p2c(pixel: Point[Double]): Point[Double] = {
-    val x = (pixel.x/TorricelliSim.windowSize.width)*width-(width/2)
-    val y = -1*((pixel.y/TorricelliSim.windowSize.height)*height-(height/2))
+    val x = (pixel.x/TorricelliSim.windowSize.width)*width-((width/2)+shiftX)
+    val y = -1*((pixel.y/TorricelliSim.windowSize.height)*height-((height/2)+shiftY))
     Point[Double](x, y)
   }
 
@@ -127,9 +127,11 @@ object CoordSys {
   * @param windowSize Size of host window
   */
 //max only works at 100 right now so don't use anything else
-class CoordSys(windowSize: Dimension, maxX: Int, maxY: Int, incrementBy: Int) extends Drawable {
+class CoordSys(windowSize: Dimension, maxX: Int, maxY: Int, incrementBy: Int, shiftX: Int = 0, shiftY: Int = 0) extends Drawable {
   CoordSys.width = maxX*2
   CoordSys.height = maxY*2
+  CoordSys.shiftX = shiftX
+  CoordSys.shiftY = -shiftY
 
   val yAxis = new Axis(SingleAxis.Y, incrementBy)
   val xAxis = new Axis(SingleAxis.X, incrementBy)
