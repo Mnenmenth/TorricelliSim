@@ -61,64 +61,12 @@ object ProjectileMotion {
 
   val G = 9.8
 
-  /**
-    *
-    * @param Vx Velocity along x
-    * @param t Time taken
-    * @return Horizontal distance
-    */
-  def horizontalDistance(Vx: Double, t: Double): Double = Vx * t
+  def distance(hVel: Double, height: Double, g: Double = G): Double = hVel * math.sqrt((2*height)/g)
+  def distance(hVel: Double, time: Double): Double = hVel * time
 
-  /**
-    *
-    * @param Vyo Initial velocity along y
-    * @param t Time taken
-    * @param g Acceleration due to gravity
-    * @return Vertical distance
-    */
-  def verticalDistance(Vyo: Double, t: Double, g: Double = G): Double = (Vyo * t) - (.5 * g * (t*t))
+  def time(height: Double, g: Double = G): Double = math.sqrt((2*height)/g)
+  def vVel(time: Double, g: Double = G): Double = -time * g
 
-  /**
-    *
-    * @param Vyo Initial velocity along y
-    * @param t Time taken
-    * @param g Acceleration due to gravity
-    * @return Vertical velocity
-    */
-  def verticalVelocity(Vyo: Double, t: Double, g: Double = G): Double = Vyo - (g * t)
+  def impactAngle(vVel: Double, hVel: Double) = math.atan(vVel/hVel)
 
-  /**
-    *
-    * @param Vo Initial Velocity
-    * @param θ Initial angle
-    * @param g Acceleration due to gravity
-    * @return Time Taken
-    */
-  def timeTaken(Vo: Double, θ: Double, g: Double = G): Double = (2 * Vo * math.sin(θ)) / g
-
-  /**
-    *
-    * @param Vo Initial Velocity
-    * @param θ Initial angle
-    * @param g Acceleration due to gravity
-    * @return Maximum height during flight
-    */
-  def maxHeight(Vo: Double, θ: Double, g: Double = G): Double = ((Vo*Vo) * math.pow(math.sin(θ), 2)) / (2 * g)
-
-  /**
-    *
-    * @param Vo Initial Velocity
-    * @param θ Initial angle
-    * @param g Acceleration due to gravity
-    * @return Horizontal range
-    */
-  def horizontalRange(Vo: Double, θ: Double, g: Double = G): Double = ((Vo*Vo) * (2 * math.sin(θ))) / g
-
-  /**
-    *
-    * @param Vy Vertical Velocity
-    * @param Vx Horizontal Velocity
-    * @return Angle of Impact
-    */
-  def impactAngle(Vy: Double, Vx: Double) = math.atan(Vy/Vx)
 }

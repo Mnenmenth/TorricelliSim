@@ -1,6 +1,6 @@
 package com.mnenmenth.torricellisim.drawable
 
-import java.awt.geom.{Arc2D, Rectangle2D}
+import java.awt.geom.{Arc2D, Line2D, Path2D, Rectangle2D}
 import java.awt.{BasicStroke, Color, Dimension, Polygon}
 
 import com.mnenmenth.torricellisim.core.TorricelliSim
@@ -32,20 +32,36 @@ class Container(private var _size: Dimension,
     }
   }
 
-  private class WaterStream(private var _height: Double = size.height) extends Drawable {
-    private val arc = new Arc2D.Double(Arc2D.OPEN)
+  private class WaterStream(height: Double) extends Drawable {
+    private val arc = new Path2D.Double
+    def updateArc(): Unit =  {
+      if (liquidHeight-height > 0) {
+        val liquidVel = TorricellisLaw.velocity(liquidHeight - height)
+        val time = ProjectileMotion.time(height)
+        val distance = ProjectileMotion.distance(liquidVel, time)
+        val mid = ProjectileMotion.distance(liquidVel, time / 2)
 
-    def height = _height
-    def height_=(h: Double) = {
-      _height = h
-      val Vi = liquidVel
-      val time = ProjectileMotion.timeTaken(Vi, 0)
-      val hDis = ProjectileMotion.horizontalDistance(Vi, time)
-      val maxH = ProjectileMotion.maxHeight(Vi, time)
-      val impactAngle = ProjectileMotion.impactAngle(0, Vi)
-      val pos = CoordSys.c2p(Point(0, height))
-      val rect =
+        val start = CoordSys.c2p(Point[Double](0, height))
+        val control = CoordSys.c2p(Point(mid, height))
+        val end = CoordSys.c2p(Point(distance, 0))
+        arc.reset()
+        arc.moveTo(start.x, start.y)
+        arc.curveTo(start.x, start.y, control.x, control.y, end.x, end.y)
+      } else {
+        arc.reset()
+        arc.moveTo(0, 0)
+        arc.curveTo(0, 0, 0, 0, 0, 0)
+      }
     }
+
+    override def draw(g: Graphics2D): Unit = {
+      val g2 = g.create().asInstanceOf[Graphics2D]
+      g2.setStroke(new BasicStroke(2))
+      g2.setColor(Color.CYAN)
+      g2.draw(arc)
+      g2.dispose()
+    }
+
   }
 
   private class Liquid(private var _height: Double = liquidHeight) extends Drawable {
@@ -87,14 +103,8 @@ class Container(private var _size: Dimension,
   def liquidHeight: Double = _liquidHeight
   def liquidHeight_=(h: Double)={
     _liquidHeight = h
-    _liquidVel = TorricellisLaw.velocity(h)
     liquid.height = h
-  }
-  liquidHeight = liquidHeight
-  def liquidVel: Double = _liquidVel
-  def liquidVel_=(v: Double)={
-    _liquidVel = v
-    _liquidHeight = TorricellisLaw.liquidHeight(v)
+    streams.foreach(_.updateArc())
   }
 
   private var leftWall = new Wall(WallSide.Left)
@@ -102,6 +112,14 @@ class Container(private var _size: Dimension,
   private var bottomWall = new Wall(WallSide.Bottom)
 
   private val liquid = new Liquid
+  /*private val stream1 = new WaterStream(5)
+  private val stream2 = new WaterStream(20)
+  private val stream3 = new WaterStream(30)
+  private val stream4 = new WaterStream(45)
+  private val streams = List[WaterStream](stream1, stream2, stream3, stream4)*/
+  private var streams = List[WaterStream]()
+  for (h <- 5 to size.height by 5) streams = streams :+ new WaterStream(h)
+  liquidHeight = liquidHeight
 
   override def draw(g: Graphics2D): Unit = {
     liquid.draw(g)
@@ -111,6 +129,7 @@ class Container(private var _size: Dimension,
     rightWall.draw(g2)
     bottomWall.draw(g2)
     g2.dispose()
+    streams.foreach(_.draw(g))
   }
 
 }
