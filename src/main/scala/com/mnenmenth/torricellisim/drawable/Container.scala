@@ -31,26 +31,28 @@ class Container(private var _size: Dimension,
       end = Point(0, 0)
     }
   }
-
   private class WaterStream(height: Double) extends Drawable {
     private val arc = new Path2D.Double
+    var distance: Double = 0
+    var isDrawn: Boolean = true
     def updateArc(): Unit =  {
       if (liquidHeight-height > 0) {
         val liquidVel = TorricellisLaw.velocity(liquidHeight - height)
         val time = ProjectileMotion.time(height)
-        val distance = ProjectileMotion.distance(liquidVel, time)
+        distance = ProjectileMotion.distance(liquidVel, time)
         val mid = ProjectileMotion.distance(liquidVel, time / 2)
-
         val start = CoordSys.c2p(Point[Double](0, height))
         val control = CoordSys.c2p(Point(mid, height))
         val end = CoordSys.c2p(Point(distance, 0))
         arc.reset()
         arc.moveTo(start.x, start.y)
         arc.curveTo(start.x, start.y, control.x, control.y, end.x, end.y)
+        isDrawn = true
       } else {
         arc.reset()
         arc.moveTo(0, 0)
         arc.curveTo(0, 0, 0, 0, 0, 0)
+        isDrawn = false
       }
     }
 
@@ -91,6 +93,18 @@ class Container(private var _size: Dimension,
     }
   }
 
+  private class Envelope extends DottedLine {
+    override val stroke = new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, Array(20.0f), 0.0f)
+
+    def updateEnvelope(liquidHeight: Double, maxStreamLength: Double): Unit = {
+      val length = math.sqrt(math.pow(liquidHeight, 2) + math.pow(maxStreamLength, 2))
+      begin = Point(0, liquidHeight)
+      val endX = begin.x + length * math.cos(math.toRadians(45))
+      val endY = begin.y - length * math.sin(math.toRadians(45))
+      end = Point(endX, endY)
+    }
+  }
+
   def size: Dimension = _size
   def size_=(s: Dimension)= {
     _size = s
@@ -105,6 +119,9 @@ class Container(private var _size: Dimension,
     _liquidHeight = h
     liquid.height = h
     streams.foreach(_.updateArc())
+    var maxStreamLength: Double = 0
+    streams.foreach(s => if (s.distance > maxStreamLength && s.isDrawn) maxStreamLength = s.distance)
+    envelope.updateEnvelope(liquidHeight, maxStreamLength)
   }
 
   private var leftWall = new Wall(WallSide.Left)
@@ -112,15 +129,12 @@ class Container(private var _size: Dimension,
   private var bottomWall = new Wall(WallSide.Bottom)
 
   private val liquid = new Liquid
-  /*private val stream1 = new WaterStream(5)
-  private val stream2 = new WaterStream(20)
-  private val stream3 = new WaterStream(30)
-  private val stream4 = new WaterStream(45)
-  private val streams = List[WaterStream](stream1, stream2, stream3, stream4)*/
   private var streams = List[WaterStream]()
   for (h <- 5 to size.height by 5) streams = streams :+ new WaterStream(h)
-  liquidHeight = liquidHeight
 
+  private val envelope = new Envelope
+
+  liquidHeight = liquidHeight
   override def draw(g: Graphics2D): Unit = {
     liquid.draw(g)
     val g2 = g.create().asInstanceOf[Graphics2D]
@@ -130,6 +144,7 @@ class Container(private var _size: Dimension,
     bottomWall.draw(g2)
     g2.dispose()
     streams.foreach(_.draw(g))
+    envelope.draw(g)
   }
 
 }
